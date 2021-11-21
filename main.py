@@ -1,3 +1,4 @@
+import socket
 import numpy as np
 from keras.models import load_model
 from mtcnn.mtcnn import MTCNN
@@ -7,7 +8,6 @@ from faceidentify.SVMclassifier import model as svm
 from faceidentify.SVMclassifier import out_encoder
 
 #### FOR GAZE AND MOTION ####
-import time 
 import argparse
 import cv2
 import os.path as osp
@@ -15,17 +15,18 @@ from detectheadposition import headpose
 from gaze_tracking import GazeTracking
 
 #### FOR WARNING ####
-import pygame  # For play Sound
-import time  # For sleep
-import threading  # For multi thread
+import pygame # For play Sound
+import time # For sleep
+import threading #For multi thread
 # from tkinter import *
 # import tkinter.messagebox
-
+# def Msgbox1():
+#     tkinter.messagebox.showwarning("경고", "집중하세요")
 # def Msgbox1():
 #     tkinter.messagebox.showwarning("경고", "집중하세요")
 import sys #data result send
 # 결과 데이터 txt 파일 저장
-f=open('/home/dahee/Capstone/result_data.txt','w')
+f=open('C:/Capstone/result_data.txt','w')
 
 # Warning Sound
 import asyncio
@@ -41,6 +42,10 @@ import cv2
 
 # 메세지 import
 from tkinter import messagebox
+
+# 부정행위 시간
+from datetime import datetime
+
  
 # window 1
 window = tkinter.Tk()
@@ -116,7 +121,7 @@ button1.place(x=280,y=320)
 labelNew1=labelNew = ttk.Label(window, text="")
 
 
-
+# Warning Sound
 def Sound():
     pygame.mixer.init()
     music = pygame.mixer.Sound("Warning/warning.wav")
@@ -126,48 +131,46 @@ def Sound():
 # Settle Cheater
 def Fail(timee, redcard):
     if redcard >= timee/3:
-        print("===부정행위자 입니다===")
+        print("===부정행위자 입니다===") 
         f.write("   부정행위자(경고누적) \n")
+                   
+
 
 # get the face embedding for one face
 def get_embedding(model, face_pixels):
-    # scale pixel values
-    face_pixels = face_pixels.astype('float32')
-    # standardize pixel values across channels (global)
-    mean, std = face_pixels.mean(), face_pixels.std()
-    face_pixels = (face_pixels - mean) / std
-    # print(face_pixels.shape)
+	# scale pixel values
+	face_pixels = face_pixels.astype('float32')
+	# standardize pixel values across channels (global)
+	mean, std = face_pixels.mean(), face_pixels.std()
+	face_pixels = (face_pixels - mean) / std
+	#print(face_pixels.shape)
     # transform face into one sample
-    # expand dims adds a new dimension to the tensor
-    samples = np.expand_dims(face_pixels, axis=0)
-    # print(samples.shape)
+    #expand dims adds a new dimension to the tensor
+	samples = np.expand_dims(face_pixels, axis=0)
+	#print(samples.shape)
     # make prediction to get embedding
-    yhat = model.predict(samples)
-    return yhat[0]
+	yhat = model.predict(samples)
+	return yhat[0]
 
-# Print Result
-
-
+# Print Result 
 def PrintResult(x, y):
     print("###############--RESULT--#################")
     print("yellocard:", x, "/ redcard", y)
     print("###########################################")
+   
+        
 
 # point can't get negative
-
-
 def notnegative(x):
-    if x < 0:
+    if x  < 0:
         return 0
     else:
         return x
 
 
-
-
 def TxtOpen():
     f.close()
-    data = open('/home/dahee/Capstone/result_data.txt', 'r')
+    data = open('C:/Capstone/result_data.txt', 'r')
     #messagebox.showinfo("Result","Result")
     #data = open('/home/dahee/Capstone/result_data.txt', 'r')
     contents = data.read()
@@ -175,31 +178,33 @@ def TxtOpen():
     f.close()
 
 
-
-
 # main function
 def main(args):
-    filename = args["input_file"]
-#<<<<<<< HEAD
-    faceCascade = cv2.CascadeClassifier('/home/dahee/Capstone/models/haarcascade_frontalface_default.xml')
-    model = load_model('/home/dahee/Capstone/models/facenet_keras.h5')
-    #C:\Capstone\poscas\POSCO_AIProject_OnlineTestCheatingDetectionAiSystem-master\models
-#=======
 
+    warning_time1=0
+    warning_time2=0
+    warning_time3=0
+
+    filename = args["input_file"]
+    faceCascade = cv2.CascadeClassifier('C:/Capstone/models/haarcascade_frontalface_default.xml')
+    model = load_model('C:/Capstone/models/facenet_keras.h5')
+
+    faceCascade = cv2.CascadeClassifier('models/haarcascade_frontalface_default.xml')
+    model = load_model('models/facenet_keras.h5')
 #>>>>>>> 757e3559f2acad057224670a45fca1fc2d17309e
 
-
-
+    
     if filename is None:
         isVideo = False
         #url='http://192.168.0.06:8091/?action=stream'
-        #webcam = cv2.VideoCapture(url)
+        #webcam = cv2.VideoCapture(url)  
 
-
-
-        webcam = cv2.VideoCapture(0) # 캠으로 이미지 받아오는 코드
+        #카메라 부분####################### 
+        webcam = cv2.VideoCapture(0)
         webcam.set(3, args['wh'][0])
-        webcam.set(4, args['wh'][1])       
+        webcam.set(4, args['wh'][1])
+          
+   
     else:
         isVideo = True
         webcam = cv2.VideoCapture(filename)
@@ -210,9 +215,9 @@ def main(args):
         name, ext = osp.splitext(filename)
         out = cv2.VideoWriter(args["output_file"],
                               fourcc, fps, (width, height))
-        
-
     
+
+
     ##############################################################################################
    
     # 이름 제대로 들어가는지 테스트 -> 이름 제대로 들어감
@@ -225,9 +230,8 @@ def main(args):
     f.write(UserName+"   ")
     checktime = 1
     start_check= time.time() + (10 * checktime)
-    checktime_end = time.time() + (60 * checktime) #1분 동안 체크 (60)
+    checktime_end = time.time() + (60 * checktime)
     while (webcam.isOpened()):# Infinity Loop for Detect Cheating for Online test
-
         ret, frame = webcam.read()  # Read wabcam
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         faces = faceCascade.detectMultiScale(
@@ -260,16 +264,10 @@ def main(args):
             class_probability = pred_prob[0, class_index] * 100
             predict_names = out_encoder.inverse_transform(pred)
             text = '%s (%.3f%%)' % (predict_names[0], class_probability)
-            cv2.putText(frame, text, (x, y),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
+            cv2.putText(frame, text, (x, y), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
         
-        cv2.imshow('capstone', frame) #-> 정상 출력 되는 코드
-        #label.after(20,frame) #-> window에 비디오 창이 열리게 끔 하고 싶었으나 안됨
-    
-
-
+        cv2.imshow('capstone', frame)
         cv2.waitKey(1)   
-
         
         if(time.time() > start_check and predict_names[0]==UserName and class_probability > 80):
            
@@ -291,8 +289,10 @@ def main(args):
             quit()
             
             break 
-       
- 
+
+
+
+
     # Variable Setting
     hpd = headpose.HeadposeDetection(
         args["landmark_type"], args["landmark_predictor"])  # import headpose
@@ -300,8 +300,6 @@ def main(args):
     yellocard = 0
     redcard = 0
     tempval = 0
-
-
 
     # Input time for limit test time
     timee=int(time1)
@@ -340,7 +338,7 @@ def main(args):
             yellocard = yellocard + 2
 
         # Get redcard optiom
-        if yellocard > 50:
+        if yellocard > 10:
             yellocard = 0
             tempval = tempval + 1
             redcard = redcard + 1
@@ -354,49 +352,60 @@ def main(args):
             my_thread.start()
             tempval = 0
 
+        
     # if you are not GPU environment, Do not run this code by # --------------
         # if get 2redcard, then give Picture Warning(Once)
-        if redcard == 2:
-            warn_img = cv2.imread("Warning/warning.png", cv2.IMREAD_COLOR)
-            cv2.imshow('Warning', warn_img)
+        if redcard == 2.1:
+            #warn_img = cv2.imread("Warning/warning.png", cv2.IMREAD_COLOR)
+            #cv2.imshow('Warning', warn_img)
             cv2.waitKey(1)
-            redcard = 2.1
+            warning_time2=datetime.now()
+            print(warning_time2)
+            redcard = 2.2
+            continue
     # -----------------------------s------------------------------------------
         # Get log consistently
         print("<< *의심수준:", yellocard, " || ", "*경고횟수:", redcard, " >>")
         #cv2.destroyWindow('Warning')
+        if redcard==1:
+            warning_time1=datetime.now()
+            print(warning_time1)
+            redcard=1.1
+            continue
+
         # Detect head position
         if isVideo:
             frame, angles = hpd.process_image(frame)
-            if frame is None: 
+            if frame is None:
                 break
             else:
                 out.write(frame)
         else:
             frame, angles = hpd.process_image(frame)
             if angles is None:
-                #print("경고! 응시자가 사라졌습니다")
-                #messagebox.showwarning("경고","경고! 응시자가 사라졌습니다")
+                print("경고! 응시자가 사라졌습니다")
+                camout_time=datetime.now()
+                print(camout_time)
                 if time.time() > check_angle:
                     redcard= timee/3+ redcard
                     #print("지속적으로 카메라 앵글 밖으로 나갔으므로, 시험을 강제종료합니다.")
-                    #messagebox.showinfo("확인","얼굴이 일치합니다. 시험을 시작합니다")
                     messagebox.showerror("Warning","Camera angle OUT, Test exit")
-                    f.write("Camera angle OUT")
+                    f.write("카메라 앵글 탈출 \n")
+                    f.write("카메라 탈출 시간 : %s \n" %(camout_time))
                     PrintResult(yellocard, redcard)
                     Fail(timee, redcard)
-
+                    
+                    
                     TxtOpen()
 
 
                     window.destroy()
                     quit()
-                    
                 else:
                     pass
                 
             else:  # angles = [x,y,z] , get point from headposition
-                if angles[0] > 20 or angles[0] < -20 or angles[1] > 20 or angles[1] < -20 or angles[2] > 20 or angles[2] < -20:
+                if angles[0] > 15 or angles[0] < -15 or angles[1] > 15 or angles[1] < -15 or angles[2] > 15 or angles[2] < -15:
                     yellocard = yellocard + 2
                 else:
                     yellocard = yellocard - 1
@@ -410,10 +419,12 @@ def main(args):
             cv2.imshow('capstone', frame)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             #print("관리자에 의해 시험이 강제 종료 되었습니다")
-
-            f.write("경고 횟수 : %s" %(redcard))
-            f.write("   -> exit \n")
-
+            f.write("경고 횟수 : %s" %int(redcard))
+            f.write("   -> 강제 종료 \n")
+            if warning_time1!=0:
+                f.write("첫번째 경고 시간 : %s \n" %(warning_time1))
+            if warning_time2!=0:
+                f.write("두번째 경고 시간 : %s \n" %(warning_time2))
             messagebox.showerror("Warning","Exit of Test by administrator")
             
             PrintResult(yellocard, redcard)
@@ -434,8 +445,26 @@ def main(args):
             window.destroy()
           #  f.close()
             break
+
+        # 경고 세장 강제종료
+        if redcard>=3:
+            warning_time3=datetime.now()
+            f.write("경고 횟수 : %s" %int(redcard))
+            f.write("   -> 강제 종료 \n")
+            f.write("첫번째 경고 시간 : %s \n" %(warning_time1))
+            f.write("두번째 경고 시간 : %s \n" %(warning_time2))
+            f.write("세번째 경고 시간 : %s \n" %(warning_time3))
+            messagebox.showerror("Warning","3 redcard / Test Exit")
+            
+            PrintResult(yellocard, redcard)
+            Fail(timee, redcard)
+
+            TxtOpen()
+
+            window.destroy()
+            break
+
         elif time.time() > max_time_end:
-            #print(timee, "분의 시험이 종료되었습니다.")
             f.write("    -> 정상 종료 \n")
             
             PrintResult(yellocard, redcard)
@@ -462,11 +491,6 @@ def main(args):
     # When everything done, release the webcam
     webcam.release()
     cv2.destroyAllWindows()
-
-
-    #TxtOpen() -> 새로운 UI 창이 뜸.. 여기에 넣으면 안될 듯
-
-
     quit()
     window.destroy()
     if isVideo:
@@ -488,13 +512,10 @@ if __name__ == '__main__':
                         default='gaze_tracking/trained_models/shape_predictor_68_face_landmarks.dat', help="Landmark predictor data file.")
     args = vars(parser.parse_args())
 
-
-
-
     window.mainloop()
- #<<<<<<< HEAD
+#<<<<<<< HEAD
     main(args)
- #=======
+#=======
     main(args)
 
 
