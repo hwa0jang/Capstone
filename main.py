@@ -360,6 +360,7 @@ def main(args):
             #cv2.imshow('Warning', warn_img)
             cv2.waitKey(1)
             warning_time2=datetime.now()
+            cv2.imwrite('warning2.png', frame)
             print(warning_time2)
             redcard = 2.2
             continue
@@ -369,6 +370,7 @@ def main(args):
         #cv2.destroyWindow('Warning')
         if redcard==1:
             warning_time1=datetime.now()
+            cv2.imwrite('warning1.png', frame)
             print(warning_time1)
             redcard=1.1
             continue
@@ -385,24 +387,19 @@ def main(args):
             if angles is None:
                 print("경고! 응시자가 사라졌습니다")
                 camout_time=datetime.now()
+                cv2.imwrite('cam_out.png', frame)
                 print(camout_time)
-                if time.time() > check_angle:
-                    redcard= timee/3+ redcard
-                    #print("지속적으로 카메라 앵글 밖으로 나갔으므로, 시험을 강제종료합니다.")
-                    messagebox.showerror("Warning","Camera angle OUT, Test exit")
-                    f.write("카메라 앵글 탈출 \n")
-                    f.write("카메라 탈출 시간 : %s \n" %(camout_time))
-                    PrintResult(yellocard, redcard)
-                    Fail(timee, redcard)
-                    
-                    
-                    TxtOpen()
+                cam_out = cv2.imread("cam_out.png", cv2.IMREAD_COLOR)
+                cv2.imshow('camera out', cam_out)
+                f.write("카메라 앵글 탈출 \n")
+                f.write("카메라 탈출 시간 : %s \n" %(camout_time))
+                messagebox.showerror("Warning","Camera angle OUT, Test exit")
+
+                TxtOpen()
 
 
-                    window.destroy()
-                    quit()
-                else:
-                    pass
+                window.destroy()
+                quit()
                 
             else:  # angles = [x,y,z] , get point from headposition
                 if angles[0] > 15 or angles[0] < -15 or angles[1] > 15 or angles[1] < -15 or angles[2] > 15 or angles[2] < -15:
@@ -423,8 +420,14 @@ def main(args):
             f.write("   -> 강제 종료 \n")
             if warning_time1!=0:
                 f.write("첫번째 경고 시간 : %s \n" %(warning_time1))
+                warning1 = cv2.imread("warning1.png", cv2.IMREAD_COLOR)
+                cv2.imshow('first warning', warning1)
+
             if warning_time2!=0:
                 f.write("두번째 경고 시간 : %s \n" %(warning_time2))
+                warning2 = cv2.imread("warning2.png", cv2.IMREAD_COLOR)
+                cv2.imshow('second warning', warning2)
+            
             messagebox.showerror("Warning","Exit of Test by administrator")
             
             PrintResult(yellocard, redcard)
@@ -445,15 +448,23 @@ def main(args):
             window.destroy()
           #  f.close()
             break
+        
 
         # 경고 세장 강제종료
         if redcard>=3:
             warning_time3=datetime.now()
+            cv2.imwrite('warning3.png', frame)
             f.write("경고 횟수 : %s" %int(redcard))
             f.write("   -> 강제 종료 \n")
             f.write("첫번째 경고 시간 : %s \n" %(warning_time1))
             f.write("두번째 경고 시간 : %s \n" %(warning_time2))
             f.write("세번째 경고 시간 : %s \n" %(warning_time3))
+            warning1 = cv2.imread("warning1.png", cv2.IMREAD_COLOR)
+            warning2 = cv2.imread("warning2.png", cv2.IMREAD_COLOR)
+            warning3 = cv2.imread("warning3.png", cv2.IMREAD_COLOR)
+            cv2.imshow('first warning', warning1)
+            cv2.imshow('second warning', warning2)
+            cv2.imshow('third warning', warning3)
             messagebox.showerror("Warning","3 redcard / Test Exit")
             
             PrintResult(yellocard, redcard)
